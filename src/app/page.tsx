@@ -62,15 +62,28 @@ export default function Home() {
       {/* FEATURES */}
       <section className="grid grid-cols-1 md:grid-cols-3 border-b border-[#e2d4c0]">
         {[
-          { icon: "☕", title: "Café de Especialidad", desc: "Granos seleccionados, preparados por baristas apasionados." },
-          { icon: "🥐", title: "Desayunos y Salados", desc: "Desde un croissant hasta un brunch completo." },
-          { icon: "📱", title: "Pedido Anticipado", desc: "Pide antes de bajar. Lo tenemos listo." },
-        ].map((f, i) => (
-          <div key={i} className="p-10 border-r last:border-r-0 border-[#e2d4c0] text-center">
-            <div className="text-4xl mb-4">{f.icon}</div>
-            <h3 className="text-lg font-[family-name:var(--font-playfair)] text-[#2c1810] mb-2">{f.title}</h3>
-            <p className="text-[#8b5e3c] text-sm">{f.desc}</p>
-          </div>
+          { icon: "☕", title: "Café de Especialidad", desc: "Granos seleccionados, preparados por baristas apasionados.", href: "" },
+          { icon: "🥐", title: "Desayunos y Salados", desc: "Desde un croissant hasta un brunch completo.", href: "" },
+          { icon: "📱", title: "Pedido Anticipado", desc: "Pide antes de bajar. Lo tenemos listo.", href: "/chatbot" },
+        ].map((f, i) => {
+          const content = (
+            <>
+              <div className="text-4xl mb-4">{f.icon}</div>
+              <h3 className="text-lg font-[family-name:var(--font-playfair)] text-[#2c1810] mb-2">{f.title}</h3>
+              <p className="text-[#8b5e3c] text-sm">{f.desc}</p>
+            </>
+          )
+          const cls = "p-10 border-r last:border-r-0 border-[#e2d4c0] text-center"
+          return f.href ? (
+            <Link key={i} href={f.href} className={`${cls} hover:bg-[#f0e8dc] transition-colors`}>
+              {content}
+            </Link>
+          ) : (
+            <div key={i} className={cls}>
+              {content}
+            </div>
+          )
+        }
         ))}
       </section>
 
@@ -79,7 +92,7 @@ export default function Home() {
         {[
           { src: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=800&auto=format&fit=crop", alt: "Café espresso" },
           { src: "https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=800&auto=format&fit=crop", alt: "Pasteles" },
-          { src: "https://images.unsplash.com/photo-1484723091739-30990b8e9dc4?q=80&w=800&auto=format&fit=crop", alt: "Desayuno" },
+          { src: "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?q=80&w=800&auto=format&fit=crop", alt: "Desayuno" },
           { src: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?q=80&w=800&auto=format&fit=crop", alt: "Brunch" },
         ].map((img) => (
           <div key={img.alt} className="relative h-64 overflow-hidden group">
