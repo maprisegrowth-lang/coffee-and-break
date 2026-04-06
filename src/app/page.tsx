@@ -50,9 +50,10 @@ export default function Home() {
             </Link>
             <a
               href="/chatbot?text=Hola!%20Quiero%20hacer%20un%20pedido"
-              className="border border-white/40 text-white px-8 py-3.5 rounded-full hover:bg-white/10 transition-colors"
+              className="border border-white/40 text-white px-8 py-3.5 rounded-full hover:bg-white/10 transition-colors text-center"
             >
-              Pedir ahora
+              <span className="block">Pedir ahora</span>
+              <span className="block text-xs text-white/50 mt-0.5">Te lo tenemos listo cuando llegues</span>
             </a>
           </div>
         </div>
