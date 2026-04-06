@@ -34,9 +34,8 @@ export const menu: MenuCategory[] = [
     name: "Infusiones",
     emoji: "🍵",
     items: [
-      { name: "Té English Breakfast", price: 2500 },
-      { name: "Manzanilla", price: 2500 },
-      { name: "Menta", price: 2500 },
+      { name: "Té (English Breakfast · Té Verde)", price: 2500 },
+      { name: "Manzanilla · Menta", price: 2500 },
     ],
   },
   {
@@ -63,6 +62,15 @@ export const menu: MenuCategory[] = [
       { name: "Jugo Chirimoya", price: 3500 },
       { name: "Jugo Mango", price: 3500 },
       { name: "Jugo Piña", price: 3500 },
+    ],
+  },
+  {
+    id: "extras",
+    name: "Extras",
+    emoji: "➕",
+    items: [
+      { name: "Leche", price: 700 },
+      { name: "Yogurt Proteína", price: 1000 },
     ],
   },
   {
@@ -121,15 +129,6 @@ export const menu: MenuCategory[] = [
         description: "Café o té a elección + Jugo de Naranja + Paila de Huevos + Palta",
         price: 9000,
       },
-    ],
-  },
-  {
-    id: "extras",
-    name: "Extras",
-    emoji: "➕",
-    items: [
-      { name: "Leche", price: 700 },
-      { name: "Crema Proteína", price: 1000 },
     ],
   },
 ]
