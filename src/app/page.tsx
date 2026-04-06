@@ -93,12 +93,12 @@ export default function Home() {
         <h2 className="text-4xl font-[family-name:var(--font-playfair)] text-[#2c1810] mb-12">Nuestra Carta</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
           {[
-            { emoji: "☕", name: "Cafés", desde: 2500 },
+            { emoji: "☕", name: "Cafés", desde: 2800 },
             { emoji: "🍰", name: "Dulces", desde: 1500 },
             { emoji: "🥐", name: "Salados", desde: 4000 },
             { emoji: "🍳", name: "Desayunos", desde: 5900 },
             { emoji: "🧃", name: "Bebidas Frías", desde: 1000 },
-            { emoji: "🍊", name: "Jugos Naturales", desde: 2000 },
+            { emoji: "🍊", name: "Jugos Naturales", desde: 3000 },
           ].map((cat) => (
             <Link
               key={cat.name}

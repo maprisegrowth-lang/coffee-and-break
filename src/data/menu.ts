@@ -19,14 +19,24 @@ export const menu: MenuCategory[] = [
     name: "Café",
     emoji: "☕",
     items: [
-      { name: "Espresso", price: 2500, priceDouble: 3400 },
+      { name: "Espresso", price: 2800, priceDouble: 3400 },
       { name: "Americano", price: 3000, priceDouble: 3400 },
-      { name: "Cortado", price: 3200, priceDouble: 3400 },
+      { name: "Cortado", price: 3200, priceDouble: 3500 },
       { name: "Capuccino", price: 3500, priceDouble: 3700 },
-      { name: "Latte", price: 3700, priceDouble: 4000 },
-      { name: "Mokaccino", price: 4000, priceDouble: 4250 },
-      { name: "Descafeinado", price: 4500, priceDouble: 4500 },
-      { name: "Infusiones", price: 2500 },
+      { name: "Latte", price: 3700, priceDouble: 3900 },
+      { name: "Latte Vainilla", price: 4000, priceDouble: 4200 },
+      { name: "Mococcino", price: 4000, priceDouble: 4200 },
+      { name: "Chocolate Caliente", price: 4200, priceDouble: 4400 },
+    ],
+  },
+  {
+    id: "infusiones",
+    name: "Infusiones",
+    emoji: "🍵",
+    items: [
+      { name: "Té English Breakfast", price: 2500 },
+      { name: "Manzanilla", price: 2500 },
+      { name: "Menta", price: 2500 },
     ],
   },
   {
@@ -34,11 +44,12 @@ export const menu: MenuCategory[] = [
     name: "Bebidas Frías",
     emoji: "🧃",
     items: [
-      { name: "Bebidas en Lata", price: 1800 },
+      { name: "Bebidas en Lata", price: 1500 },
       { name: "Agua Mineral", price: 1000 },
       { name: "Kombucha", price: 3000 },
-      { name: "Vitamin Water", price: 2500 },
-      { name: "Red Bull", price: 3500 },
+      { name: "Jugo en Cajita", price: 1500 },
+      { name: "Vitamin Water", price: 2000 },
+      { name: "Red Bull", price: 2000 },
     ],
   },
   {
@@ -46,9 +57,12 @@ export const menu: MenuCategory[] = [
     name: "Jugos Naturales",
     emoji: "🍊",
     items: [
-      { name: "Jugo de Naranja", price: 2500 },
-      { name: "Jugo de Manzana", price: 2500 },
-      { name: "Agua con Jengibre", price: 2000 },
+      { name: "Jugo Naranja", price: 3000 },
+      { name: "Jugo Naranja-Plátano", price: 3500 },
+      { name: "Jugo Frambuesa", price: 3500 },
+      { name: "Jugo Chirimoya", price: 3500 },
+      { name: "Jugo Mango", price: 3500 },
+      { name: "Jugo Piña", price: 3500 },
     ],
   },
   {
@@ -89,7 +103,7 @@ export const menu: MenuCategory[] = [
     items: [
       {
         name: "Express",
-        description: "Café o té + Croissant Jamón-Queso",
+        description: "Café o té a elección + Croissant Jamón-Queso",
         price: 5900,
       },
       {
@@ -99,14 +113,23 @@ export const menu: MenuCategory[] = [
       },
       {
         name: "Brunch",
-        description: "Café o té + Jugo de Naranja + Paila de Huevos",
+        description: "Café o té a elección + Jugo de Naranja + Paila de Huevos",
         price: 7500,
       },
       {
         name: "Full",
-        description: "Café o té + Jugo de Naranja + Paila de Huevos + Palta",
+        description: "Café o té a elección + Jugo de Naranja + Paila de Huevos + Palta",
         price: 9000,
       },
+    ],
+  },
+  {
+    id: "extras",
+    name: "Extras",
+    emoji: "➕",
+    items: [
+      { name: "Leche", price: 700 },
+      { name: "Crema Proteína", price: 1000 },
     ],
   },
 ]
