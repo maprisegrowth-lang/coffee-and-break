@@ -105,7 +105,7 @@ export default function DashboardPage() {
   const [pedidos, setPedidos] = useState<Pedido[]>([])
   const [loading, setLoading] = useState(true)
   const [audioReady, setAudioReady] = useState(false)
-  const lastCountRef = useRef(0)
+  const knownIdsRef = useRef<Set<string>>(new Set())
   const initialLoadDone = useRef(false)
 
   // Verificar si ya está autenticado
@@ -139,13 +139,17 @@ export default function DashboardPage() {
 
     if (data) {
       const hoy = (data as Pedido[]).filter((p) => isToday(p.created_at))
-      const pendientesNuevos = hoy.filter((p) => p.estado === "pendiente").length
 
-      // Si hay más pendientes que antes, sonar
-      if (initialLoadDone.current && pendientesNuevos > lastCountRef.current) {
-        playNotification()
+      // Detectar pedidos nuevos que no conocíamos
+      if (initialLoadDone.current) {
+        const nuevos = hoy.filter((p) => p.estado === "pendiente" && !knownIdsRef.current.has(p.id))
+        if (nuevos.length > 0) {
+          playNotification()
+        }
       }
-      lastCountRef.current = pendientesNuevos
+
+      // Actualizar IDs conocidos
+      knownIdsRef.current = new Set(hoy.map((p) => p.id))
 
       setPedidos(hoy)
     }
