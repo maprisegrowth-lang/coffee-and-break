@@ -43,21 +43,27 @@ function isToday(dateStr: string) {
   )
 }
 
-// Audio: archivo WAV en /public/alert.wav
-let notificationAudio: HTMLAudioElement | null = null
+// Audio: usar archivo WAV
+let audioUnlocked = false
 
 function initAudio() {
-  if (!notificationAudio) {
-    notificationAudio = new Audio("/alert.wav")
-    notificationAudio.volume = 1.0
-  }
+  // Reproducir una vez con interacción del usuario para desbloquear
+  const a = new Audio("/alert.wav")
+  a.volume = 1.0
+  a.play().then(() => {
+    audioUnlocked = true
+    console.log("[ALERTA] Audio desbloqueado")
+  }).catch((e) => console.error("[ALERTA] Error desbloqueando:", e))
 }
 
 function playNotification() {
-  if (notificationAudio) {
-    notificationAudio.currentTime = 0
-    notificationAudio.play().catch(() => {})
-  }
+  console.log("[ALERTA] Intentando sonar, desbloqueado:", audioUnlocked)
+  // Siempre crear nueva instancia para evitar problemas de estado
+  const a = new Audio("/alert.wav")
+  a.volume = 1.0
+  a.play().then(() => {
+    console.log("[ALERTA] Sonó correctamente")
+  }).catch((e) => console.error("[ALERTA] Error al sonar:", e))
 }
 
 export default function DashboardPage() {
@@ -105,6 +111,7 @@ export default function DashboardPage() {
       // Detectar pedidos nuevos que no conocíamos
       if (initialLoadDone.current) {
         const nuevos = hoy.filter((p) => p.estado === "pendiente" && !knownIdsRef.current.has(p.id))
+        console.log("[ALERTA] Pedidos nuevos detectados:", nuevos.length, "IDs conocidos:", knownIdsRef.current.size)
         if (nuevos.length > 0) {
           playNotification()
         }
