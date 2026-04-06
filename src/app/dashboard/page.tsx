@@ -84,6 +84,7 @@ export default function DashboardPage() {
   const [pedidos, setPedidos] = useState<Pedido[]>([])
   const [loading, setLoading] = useState(true)
   const [audioReady, setAudioReady] = useState(false)
+  const lastCountRef = useRef(0)
   const initialLoadDone = useRef(false)
 
   const fetchPedidos = useCallback(async () => {
@@ -93,8 +94,16 @@ export default function DashboardPage() {
       .order("created_at", { ascending: false })
 
     if (data) {
-      // Solo pedidos de hoy
-      setPedidos((data as Pedido[]).filter((p) => isToday(p.created_at)))
+      const hoy = (data as Pedido[]).filter((p) => isToday(p.created_at))
+      const pendientesNuevos = hoy.filter((p) => p.estado === "pendiente").length
+
+      // Si hay más pendientes que antes, sonar
+      if (initialLoadDone.current && pendientesNuevos > lastCountRef.current) {
+        playNotification()
+      }
+      lastCountRef.current = pendientesNuevos
+
+      setPedidos(hoy)
     }
     setLoading(false)
   }, [])
@@ -102,45 +111,27 @@ export default function DashboardPage() {
   const activarAlertas = () => {
     initAudio()
     setAudioReady(true)
-    // Sonido de confirmación suave
     playNotification()
   }
 
   useEffect(() => {
     fetchPedidos()
 
+    // Realtime: intenta suscribirse para actualizaciones instantáneas
     const channel = supabase
       .channel("pedidos-realtime")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "pedidos" },
-        (payload) => {
-          if (payload.eventType === "INSERT") {
-            const nuevo = payload.new as Pedido
-            if (isToday(nuevo.created_at)) {
-              setPedidos((prev) => [nuevo, ...prev])
-              if (initialLoadDone.current) {
-                playNotification()
-              }
-            }
-          }
-          if (payload.eventType === "UPDATE") {
-            setPedidos((prev) =>
-              prev.map((p) =>
-                p.id === (payload.new as Pedido).id
-                  ? (payload.new as Pedido)
-                  : p
-              )
-            )
-          }
-          if (payload.eventType === "DELETE") {
-            setPedidos((prev) =>
-              prev.filter((p) => p.id !== (payload.old as Pedido).id)
-            )
-          }
+        () => {
+          // Ante cualquier cambio, recargamos todo
+          fetchPedidos()
         }
       )
       .subscribe()
+
+    // Polling de respaldo: cada 5 segundos por si realtime falla
+    const interval = setInterval(fetchPedidos, 5000)
 
     setTimeout(() => {
       initialLoadDone.current = true
@@ -148,6 +139,7 @@ export default function DashboardPage() {
 
     return () => {
       supabase.removeChannel(channel)
+      clearInterval(interval)
     }
   }, [fetchPedidos])
 
