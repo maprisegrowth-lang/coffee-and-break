@@ -14,7 +14,7 @@ export default function Home() {
         <div className="flex items-center gap-6 text-sm">
           <Link href="/menu" className="text-white/70 hover:text-white transition-colors">Carta</Link>
           <a
-            href="https://wa.me/56912345678"
+            href="/chatbot"
             className="bg-white text-[#2c1810] px-5 py-2 rounded-full font-semibold hover:bg-[#faf7f2] transition-colors"
           >
             WhatsApp
@@ -49,7 +49,7 @@ export default function Home() {
               Ver Carta
             </Link>
             <a
-              href="https://wa.me/56912345678?text=Hola!%20Quiero%20hacer%20un%20pedido"
+              href="/chatbot?text=Hola!%20Quiero%20hacer%20un%20pedido"
               className="border border-white/40 text-white px-8 py-3.5 rounded-full hover:bg-white/10 transition-colors"
             >
               Pedir por WhatsApp

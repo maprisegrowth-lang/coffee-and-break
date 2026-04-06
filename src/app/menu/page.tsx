@@ -51,7 +51,7 @@ export default function MenuPage() {
 
       {/* PRE-ORDER BANNER */}
       <a
-        href="https://wa.me/56912345678?text=Hola!%20Quiero%20hacer%20un%20pedido%20anticipado"
+        href="/chatbot"
         className="flex items-center justify-between bg-[#6b4423] text-white px-5 py-3"
       >
         <div className="font-[family-name:var(--font-inter)]">
@@ -112,7 +112,7 @@ export default function MenuPage() {
 
       {/* WHATSAPP FLOAT */}
       <a
-        href="https://wa.me/56912345678?text=Hola!%20Quiero%20hacer%20un%20pedido"
+        href="/chatbot"
         className="fixed bottom-6 right-6 bg-green-500 text-white rounded-full px-5 py-3 shadow-lg flex items-center gap-2 font-[family-name:var(--font-inter)] font-semibold text-sm hover:bg-green-600 transition-colors"
       >
         <span>💬</span> Pedir ahora

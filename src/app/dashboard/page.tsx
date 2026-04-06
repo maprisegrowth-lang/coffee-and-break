@@ -81,11 +81,37 @@ function playNotification() {
 }
 
 export default function DashboardPage() {
+  const [authenticated, setAuthenticated] = useState<boolean | null>(null)
+  const [password, setPassword] = useState("")
+  const [loginError, setLoginError] = useState("")
   const [pedidos, setPedidos] = useState<Pedido[]>([])
   const [loading, setLoading] = useState(true)
   const [audioReady, setAudioReady] = useState(false)
   const lastCountRef = useRef(0)
   const initialLoadDone = useRef(false)
+
+  // Verificar si ya está autenticado
+  useEffect(() => {
+    fetch("/api/auth")
+      .then((r) => r.json())
+      .then((d) => setAuthenticated(d.authenticated))
+      .catch(() => setAuthenticated(false))
+  }, [])
+
+  const handleLogin = async () => {
+    setLoginError("")
+    const res = await fetch("/api/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    })
+    if (res.ok) {
+      setAuthenticated(true)
+    } else {
+      setLoginError("Clave incorrecta")
+      setPassword("")
+    }
+  }
 
   const fetchPedidos = useCallback(async () => {
     const { data } = await supabase
@@ -115,22 +141,21 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
+    if (!authenticated) return
+
     fetchPedidos()
 
-    // Realtime: intenta suscribirse para actualizaciones instantáneas
     const channel = supabase
       .channel("pedidos-realtime")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "pedidos" },
         () => {
-          // Ante cualquier cambio, recargamos todo
           fetchPedidos()
         }
       )
       .subscribe()
 
-    // Polling de respaldo: cada 5 segundos por si realtime falla
     const interval = setInterval(fetchPedidos, 5000)
 
     setTimeout(() => {
@@ -141,7 +166,7 @@ export default function DashboardPage() {
       supabase.removeChannel(channel)
       clearInterval(interval)
     }
-  }, [fetchPedidos])
+  }, [fetchPedidos, authenticated])
 
   const updateEstado = async (id: string, estado: string) => {
     await supabase.from("pedidos").update({ estado }).eq("id", id)
@@ -150,6 +175,47 @@ export default function DashboardPage() {
   const pendientes = pedidos.filter((p) => p.estado === "pendiente")
   const listos = pedidos.filter((p) => p.estado === "listo")
   const entregados = pedidos.filter((p) => p.estado === "entregado")
+
+  // Pantalla de carga inicial
+  if (authenticated === null) {
+    return (
+      <div className="min-h-screen bg-[#faf7f2] flex items-center justify-center">
+        <p className="text-[#8b5e3c]">Cargando...</p>
+      </div>
+    )
+  }
+
+  // Pantalla de login
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen bg-[#2c1810] flex items-center justify-center px-6">
+        <div className="w-full max-w-xs text-center">
+          <p className="text-[#c4a882] text-xs tracking-[0.3em] uppercase mb-2">Panel del local</p>
+          <h1 className="text-3xl font-[family-name:var(--font-playfair)] text-[#faf7f2] mb-8">
+            Coffee and Break
+          </h1>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+            placeholder="Ingresa la clave"
+            className="w-full bg-[#1a0f0a] border border-[#6b4423] rounded-2xl px-5 py-4 text-[#faf7f2] text-center text-lg outline-none focus:border-[#c4a882] transition-colors placeholder:text-[#6b4423]"
+            autoFocus
+          />
+          {loginError && (
+            <p className="text-red-400 text-sm mt-3">{loginError}</p>
+          )}
+          <button
+            onClick={handleLogin}
+            className="w-full mt-4 bg-[#c4a882] text-[#2c1810] py-4 rounded-2xl font-semibold text-base active:scale-95 transition-transform"
+          >
+            Entrar
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   if (loading) {
     return (
