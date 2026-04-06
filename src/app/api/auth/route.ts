@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || "coffeeandbreak2026"
+export const dynamic = "force-dynamic"
 
 export async function POST(req: NextRequest) {
   const { password } = await req.json()
+  const correctPassword = process.env.DASHBOARD_PASSWORD || "coffeeandbreak2026"
 
-  if (password === DASHBOARD_PASSWORD) {
+  if (password === correctPassword) {
     const response = NextResponse.json({ success: true })
     response.cookies.set("cb_auth", "true", {
       httpOnly: true,
