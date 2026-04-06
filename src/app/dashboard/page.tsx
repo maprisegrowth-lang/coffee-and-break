@@ -56,28 +56,46 @@ function initAudio() {
   }
 }
 
-function playNotification() {
-  if (!audioCtx) return
-  if (audioCtx.state === "suspended") {
-    audioCtx.resume()
+async function playNotification() {
+  // Intento 1: AudioContext
+  if (audioCtx) {
+    try {
+      if (audioCtx.state === "suspended") {
+        await audioCtx.resume()
+      }
+      const osc = audioCtx.createOscillator()
+      const gain = audioCtx.createGain()
+      osc.connect(gain)
+      gain.connect(audioCtx.destination)
+      osc.type = "sine"
+      gain.gain.value = 0.5
+      const t = audioCtx.currentTime
+      // Ding-dong x3 para que sea bien notorio
+      osc.frequency.setValueAtTime(880, t)
+      osc.frequency.setValueAtTime(1100, t + 0.15)
+      osc.frequency.setValueAtTime(880, t + 0.30)
+      osc.frequency.setValueAtTime(1100, t + 0.45)
+      osc.frequency.setValueAtTime(880, t + 0.60)
+      osc.frequency.setValueAtTime(1100, t + 0.75)
+      gain.gain.setValueAtTime(0.5, t)
+      gain.gain.setValueAtTime(0.5, t + 0.8)
+      gain.gain.linearRampToValueAtTime(0, t + 1.0)
+      osc.start(t)
+      osc.stop(t + 1.0)
+      return
+    } catch {
+      // Si falla AudioContext, caer al fallback
+    }
   }
-  const osc = audioCtx.createOscillator()
-  const gain = audioCtx.createGain()
-  osc.connect(gain)
-  gain.connect(audioCtx.destination)
-  osc.type = "sine"
-  gain.gain.value = 0.4
-  const t = audioCtx.currentTime
-  // Sonido tipo "ding-dong" más notorio
-  osc.frequency.setValueAtTime(880, t)
-  osc.frequency.setValueAtTime(1100, t + 0.12)
-  osc.frequency.setValueAtTime(880, t + 0.24)
-  osc.frequency.setValueAtTime(1100, t + 0.36)
-  gain.gain.setValueAtTime(0.4, t)
-  gain.gain.setValueAtTime(0.4, t + 0.4)
-  gain.gain.linearRampToValueAtTime(0, t + 0.6)
-  osc.start(t)
-  osc.stop(t + 0.6)
+
+  // Intento 2: Recrear AudioContext si murió
+  try {
+    audioCtx = new AudioContext()
+    await audioCtx.resume()
+    playNotification()
+  } catch {
+    // Sin audio disponible
+  }
 }
 
 export default function DashboardPage() {
@@ -158,6 +176,13 @@ export default function DashboardPage() {
 
     const interval = setInterval(fetchPedidos, 5000)
 
+    // Mantener AudioContext vivo
+    const keepAlive = setInterval(() => {
+      if (audioCtx && audioCtx.state === "suspended") {
+        audioCtx.resume()
+      }
+    }, 10000)
+
     setTimeout(() => {
       initialLoadDone.current = true
     }, 2000)
@@ -165,6 +190,7 @@ export default function DashboardPage() {
     return () => {
       supabase.removeChannel(channel)
       clearInterval(interval)
+      clearInterval(keepAlive)
     }
   }, [fetchPedidos, authenticated])
 
