@@ -43,58 +43,35 @@ function isToday(dateStr: string) {
   )
 }
 
-// Audio context persistente para no ser bloqueado por el navegador
-let audioCtx: AudioContext | null = null
+// Audio element persistente — mucho más confiable que AudioContext
+let notificationAudio: HTMLAudioElement | null = null
 
 function initAudio() {
-  if (!audioCtx) {
-    audioCtx = new AudioContext()
-  }
-  // Resumir en caso de que esté suspendido
-  if (audioCtx.state === "suspended") {
-    audioCtx.resume()
+  if (!notificationAudio) {
+    notificationAudio = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVoGAACAgICAgICAgICAgICAgICAgICA" +
+      "gICAgICAgICAf3hxamRdV1JNSUZEQkFBQUJDRUhMUFVbYWdtc3l+goWIioyNjY2NjIuJh4SCf3x4dXFt" +
+      "aWViXltYVlRTUlJSU1RWWFtfY2dtcnh9goaJjI6QkZGRkI+OjIqHhYJ/fHl1cm5rZ2RhX1xaWFdWVlZX" +
+      "WFpbXmFkZ2tvc3d7f4OGiYuNj5CQkI+OjYuJhoSBfnt4dXJvbGpmY2BeXFpZWFhYWFlbXF5hZGdqbXF1" +
+      "eX2BhIeKjI6PkJCQj46NjImHhIJ/fXp3dHJvbGlnZGJgX11cW1tbW1xdXmBjZmlsb3J2en2Bg4aIi42P" +
+      "kJGQkI+OjYuJh4WCgH17eXZ0cW9samhkZGJgYF5eXV1eXl9gYmRmaWtucXR3en2AgoWHioyOj5CQkI+O" +
+      "joyKiIaDgX98enl3dXNxb25tbGppaWhoaGlpa2xtb3Fyc3V3eXt8fn+BgoOEhYaHh4iIiIiIiIeHhoaF" +
+      "hIOCgYB/fn18e3p6eXl5eXl6ent8fX5/gIGCg4SFhoeIiImJiYmJiYmIiIeHhoWEg4KBgH9+fXx8e3t7" +
+      "e3t7e3x9fn+AgYKDhIWGh4iIiYmJiYmJiYiIh4eGhYSEgoGAf35+fXx8fHx8fHx8fX1+f4CBgoOEhIWG" +
+      "h4eIiIiIiIiIiIeHhoaFhISDgoGAgH9/fn5+fn5+fn5+f3+AgIGBgoODhIWFhoaGh4eHh4eHh4eGhoaF" +
+      "hYSEg4KCgYGAgICAgICAgICAgIGBgYKCg4OEhIWFhYaGhoaGhoaGhoaGhYWFhISDg4KCgYGBgICAgICA" +
+      "gICAgICAgYGBgoKDg4SEhIWFhYWGhoaGhoaGhoWFhYWEhIODg4KCgoGBgYCAgICAgICAgICAgICBgYGC" +
+      "goKDg4OEhISFhYWFhYWFhYWFhYWFhISEg4ODgoKCgYGBgYCAgICAgICAgICAgIGBgYGCgoKDg4ODhISE" +
+      "hIWFhYWFhYWFhYSEhISEg4ODg4KCgoKBgYGBgICAgICAgICAgICAgYGBgoKCgoODg4SEhISEhISEhISE" +
+      "hISEhISEhIODg4ODgoKCgoKBgYGBgYCAgICAgICAgICAgIGBgYGCgoKCg4ODg4SEhISEhISEhISEhISE" +
+      "hISDg4ODg4OCgoKCgoGBgYGBgICAgICAgA==")
+    notificationAudio.volume = 1.0
   }
 }
 
-async function playNotification() {
-  // Intento 1: AudioContext
-  if (audioCtx) {
-    try {
-      if (audioCtx.state === "suspended") {
-        await audioCtx.resume()
-      }
-      const osc = audioCtx.createOscillator()
-      const gain = audioCtx.createGain()
-      osc.connect(gain)
-      gain.connect(audioCtx.destination)
-      osc.type = "sine"
-      gain.gain.value = 0.5
-      const t = audioCtx.currentTime
-      // Ding-dong x3 para que sea bien notorio
-      osc.frequency.setValueAtTime(880, t)
-      osc.frequency.setValueAtTime(1100, t + 0.15)
-      osc.frequency.setValueAtTime(880, t + 0.30)
-      osc.frequency.setValueAtTime(1100, t + 0.45)
-      osc.frequency.setValueAtTime(880, t + 0.60)
-      osc.frequency.setValueAtTime(1100, t + 0.75)
-      gain.gain.setValueAtTime(0.5, t)
-      gain.gain.setValueAtTime(0.5, t + 0.8)
-      gain.gain.linearRampToValueAtTime(0, t + 1.0)
-      osc.start(t)
-      osc.stop(t + 1.0)
-      return
-    } catch {
-      // Si falla AudioContext, caer al fallback
-    }
-  }
-
-  // Intento 2: Recrear AudioContext si murió
-  try {
-    audioCtx = new AudioContext()
-    await audioCtx.resume()
-    playNotification()
-  } catch {
-    // Sin audio disponible
+function playNotification() {
+  if (notificationAudio) {
+    notificationAudio.currentTime = 0
+    notificationAudio.play().catch(() => {})
   }
 }
 
@@ -180,13 +157,6 @@ export default function DashboardPage() {
 
     const interval = setInterval(fetchPedidos, 5000)
 
-    // Mantener AudioContext vivo
-    const keepAlive = setInterval(() => {
-      if (audioCtx && audioCtx.state === "suspended") {
-        audioCtx.resume()
-      }
-    }, 10000)
-
     setTimeout(() => {
       initialLoadDone.current = true
     }, 2000)
@@ -194,7 +164,6 @@ export default function DashboardPage() {
     return () => {
       supabase.removeChannel(channel)
       clearInterval(interval)
-      clearInterval(keepAlive)
     }
   }, [fetchPedidos, authenticated])
 
