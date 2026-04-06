@@ -135,7 +135,7 @@ export default function Home() {
       </section>
 
       {/* AMBIENT PHOTO + INFO */}
-      <section className="relative h-96 flex items-center">
+      <section className="relative min-h-96 py-16 md:py-0 md:h-96 flex items-center">
         <Image
           src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1920&auto=format&fit=crop"
           alt="Café ambiente"
