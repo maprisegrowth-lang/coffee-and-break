@@ -17,7 +17,7 @@ export default function Home() {
             href="/chatbot"
             className="bg-white text-[#2c1810] px-5 py-2 rounded-full font-semibold hover:bg-[#faf7f2] transition-colors"
           >
-            WhatsApp
+            Pedir
           </a>
         </div>
       </nav>
@@ -52,7 +52,7 @@ export default function Home() {
               href="/chatbot?text=Hola!%20Quiero%20hacer%20un%20pedido"
               className="border border-white/40 text-white px-8 py-3.5 rounded-full hover:bg-white/10 transition-colors"
             >
-              Pedir por WhatsApp
+              Pedir ahora
             </a>
           </div>
         </div>
@@ -63,7 +63,7 @@ export default function Home() {
         {[
           { icon: "☕", title: "Café de Especialidad", desc: "Granos seleccionados, preparados por baristas apasionados." },
           { icon: "🥐", title: "Desayunos y Salados", desc: "Desde un croissant hasta un brunch completo." },
-          { icon: "📱", title: "Pedido Anticipado", desc: "Pide por WhatsApp antes de bajar. Lo tenemos listo." },
+          { icon: "📱", title: "Pedido Anticipado", desc: "Pide antes de bajar. Lo tenemos listo." },
         ].map((f, i) => (
           <div key={i} className="p-10 border-r last:border-r-0 border-[#e2d4c0] text-center">
             <div className="text-4xl mb-4">{f.icon}</div>
@@ -134,7 +134,7 @@ export default function Home() {
           {[
             { title: "Horarios", lines: ["Lunes a Viernes", "8:00 – 19:00 hrs", "", "Sábado", "9:00 – 15:00 hrs"] },
             { title: "Ubicación", lines: ["Santiago Centro", "Chile", "", "Bajo las oficinas", "Estacionamiento disponible"] },
-            { title: "Contacto", lines: ["WhatsApp: +56 9 1234 5678", "Instagram: @coffeeandbreak", "", "Pedidos anticipados", "bienvenidos"] },
+            { title: "Contacto", lines: ["Instagram: @coffeeandbreak", "", "Pedidos anticipados", "desde la web"] },
           ].map((col) => (
             <div key={col.title}>
               <h3 className="font-[family-name:var(--font-playfair)] text-xl mb-3 text-[#c4a882]">{col.title}</h3>
