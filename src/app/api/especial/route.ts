@@ -10,7 +10,7 @@ export type EspecialSlot = {
 }
 
 // In-memory store
-let especiales: EspecialSlot[] = [
+const especiales: EspecialSlot[] = [
   {
     tipo: "desayuno",
     emoji: "🍳",

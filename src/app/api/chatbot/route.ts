@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { menu, formatPrice } from "@/data/menu"
+import { supabase } from "@/lib/supabase"
 
 export type BotState =
   | "idle"
@@ -37,11 +38,20 @@ function buildItemList(catIndex: number) {
   return `${cat.emoji} *${cat.name}*\n\n${items}`
 }
 
-function getBotResponse(message: string, state: BotState): BotResponse {
+async function savePedido(nombre: string, item: { name: string; price: number }) {
+  await supabase.from("pedidos").insert({
+    nombre,
+    items: [{ name: item.name, price: item.price, qty: 1 }],
+    total: item.price,
+    estado: "pendiente",
+  })
+}
+
+function getBotResponse(message: string, state: BotState): BotResponse & { shouldSave?: { nombre: string; item: { name: string; price: number } } } {
   const msg = message.trim().toLowerCase()
   const num = parseInt(msg)
 
-  // ── IDLE / saludo ──────────────────────────────────────────────────────────
+  // IDLE / saludo
   if (
     state === "idle" ||
     msg.match(/^(hola|buenas|buenos|hi|hey|saludos|ola|start|inicio)/)
@@ -53,7 +63,7 @@ function getBotResponse(message: string, state: BotState): BotResponse {
     }
   }
 
-  // ── MENÚ PRINCIPAL ─────────────────────────────────────────────────────────
+  // MENÚ PRINCIPAL
   if (state === "main") {
     if (num === 1 || msg.match(/pedir|pedido|orden/)) {
       return {
@@ -95,7 +105,7 @@ function getBotResponse(message: string, state: BotState): BotResponse {
     }
   }
 
-  // ── ELIGIENDO CATEGORÍA ────────────────────────────────────────────────────
+  // ELIGIENDO CATEGORÍA
   if (state === "ordering_category") {
     if (!isNaN(num) && num >= 1 && num <= menu.length) {
       const catIndex = num - 1
@@ -106,7 +116,6 @@ function getBotResponse(message: string, state: BotState): BotResponse {
         quickReplies: cat.items.map((item, i) => `${i + 1} ${item.name}`),
       }
     }
-    // Si escribe el nombre de una categoría
     const catIndex = menu.findIndex((c) =>
       msg.includes(c.name.toLowerCase()) || msg.includes(c.id)
     )
@@ -119,7 +128,7 @@ function getBotResponse(message: string, state: BotState): BotResponse {
     }
   }
 
-  // ── ELIGIENDO ÍTEM ─────────────────────────────────────────────────────────
+  // ELIGIENDO ÍTEM
   const itemsMatch = state.match(/^ordering_items_(\d+)$/)
   if (itemsMatch) {
     const catIndex = parseInt(itemsMatch[1])
@@ -134,7 +143,6 @@ function getBotResponse(message: string, state: BotState): BotResponse {
         quickReplies: [],
       }
     }
-    // Volver a categorías
     if (msg === "0" || msg.match(/volver|atras|otra/)) {
       return {
         response: buildCategoryList(),
@@ -144,7 +152,7 @@ function getBotResponse(message: string, state: BotState): BotResponse {
     }
   }
 
-  // ── ESPERANDO NOMBRE ───────────────────────────────────────────────────────
+  // ESPERANDO NOMBRE → GUARDAR PEDIDO
   const nameMatch = state.match(/^waiting_name_(\d+)_(\d+)$/)
   if (nameMatch) {
     const catIndex = parseInt(nameMatch[1])
@@ -156,10 +164,11 @@ function getBotResponse(message: string, state: BotState): BotResponse {
       response: `✅ *¡Pedido confirmado!*\n\n👤 ${nombre}\n🛍️ ${item.name}\n💰 ${formatPrice(item.price)}\n\n_Lo tenemos listo en 5-10 minutos. Te avisamos cuando bajes._ ☕`,
       state: "main",
       quickReplies: ["1️⃣ Pedir algo más", "👍 ¡Gracias!"],
+      shouldSave: { nombre, item: { name: item.name, price: item.price } },
     }
   }
 
-  // ── GRACIAS / MENSAJES POSITIVOS ───────────────────────────────────────────
+  // GRACIAS
   if (msg.match(/gracias|thank|👍|excelente|perfecto|genial|ok|dale|buenísimo|buenisimo|de nada|listo/)) {
     return {
       response: `¡Un placer! 😊 Te esperamos en Coffee and Break.\n\n¿Puedo ayudarte con algo más?`,
@@ -168,7 +177,7 @@ function getBotResponse(message: string, state: BotState): BotResponse {
     }
   }
 
-  // ── FALLBACK ───────────────────────────────────────────────────────────────
+  // FALLBACK
   return {
     response: `¡Con gusto! 😊 ¿Puedo ayudarte con algo más?`,
     state: "main",
@@ -181,6 +190,17 @@ export async function POST(req: NextRequest) {
   if (!message) {
     return NextResponse.json({ error: "message requerido" }, { status: 400 })
   }
+
   const result = getBotResponse(message, state as BotState)
-  return NextResponse.json(result)
+
+  // Si el pedido se confirmó, guardarlo en Supabase
+  if (result.shouldSave) {
+    await savePedido(result.shouldSave.nombre, result.shouldSave.item)
+  }
+
+  return NextResponse.json({
+    response: result.response,
+    state: result.state,
+    quickReplies: result.quickReplies,
+  })
 }

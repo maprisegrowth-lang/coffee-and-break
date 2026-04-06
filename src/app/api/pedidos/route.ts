@@ -1,69 +1,70 @@
 import { NextRequest, NextResponse } from "next/server"
-
-type Pedido = {
-  id: string
-  nombre: string
-  telefono: string
-  items: string
-  nota?: string
-  timestamp: string
-  status: "pendiente" | "listo" | "entregado"
-}
-
-// In-memory store for demo
-const pedidos: Pedido[] = []
+import { supabase } from "@/lib/supabase"
 
 export async function GET() {
-  return NextResponse.json({ pedidos })
+  const { data, error } = await supabase
+    .from("pedidos")
+    .select("*")
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ pedidos: data })
 }
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
 
-  if (!body.nombre || !body.telefono || !body.items) {
+  if (!body.nombre || !body.items) {
     return NextResponse.json(
-      { error: "Faltan campos obligatorios: nombre, telefono, items" },
+      { error: "Faltan campos obligatorios: nombre, items" },
       { status: 400 }
     )
   }
 
-  const nuevoPedido: Pedido = {
-    id: `PED-${Date.now()}`,
-    nombre: body.nombre,
-    telefono: body.telefono,
-    items: body.items,
-    nota: body.nota,
-    timestamp: new Date().toISOString(),
-    status: "pendiente",
+  const { data, error } = await supabase
+    .from("pedidos")
+    .insert({
+      nombre: body.nombre,
+      items: body.items,
+      total: body.total || 0,
+      estado: "pendiente",
+    })
+    .select()
+    .single()
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  pedidos.push(nuevoPedido)
-
-  // In production: send WhatsApp confirmation via Twilio/Meta API
-  // await sendWhatsAppConfirmation(nuevoPedido)
-
   return NextResponse.json(
-    {
-      success: true,
-      pedido: nuevoPedido,
-      mensaje: `Pedido confirmado para ${nuevoPedido.nombre}. Lo tendremos listo pronto.`,
-    },
+    { success: true, pedido: data },
     { status: 201 }
   )
 }
 
 export async function PATCH(req: NextRequest) {
   const body = await req.json()
-  const pedido = pedidos.find((p) => p.id === body.id)
 
-  if (!pedido) {
-    return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 })
+  if (!body.id || !body.estado) {
+    return NextResponse.json(
+      { error: "Faltan campos: id, estado" },
+      { status: 400 }
+    )
   }
 
-  pedido.status = body.status
+  const { data, error } = await supabase
+    .from("pedidos")
+    .update({ estado: body.estado })
+    .eq("id", body.id)
+    .select()
+    .single()
 
-  // In production: notify customer via WhatsApp when status = "listo"
-  // if (body.status === "listo") await notifyCustomer(pedido)
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
 
-  return NextResponse.json({ success: true, pedido })
+  return NextResponse.json({ success: true, pedido: data })
 }

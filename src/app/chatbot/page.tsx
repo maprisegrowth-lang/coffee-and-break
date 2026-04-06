@@ -16,22 +16,31 @@ function formatWhatsApp(text: string) {
     .replace(/\n/g, "<br/>")
 }
 
+function getTime() {
+  const d = new Date()
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
+}
+
 const INITIAL_MSG: Message = {
   id: 0,
   text: "Hola 👋 Bienvenido a *Coffee and Break*\n\n¿En qué te puedo ayudar?",
   from: "bot",
-  time: new Date().toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" }),
+  time: "",
 }
 
 const INITIAL_QUICK = ["1️⃣ Hacer un pedido", "2️⃣ Ver la carta", "3️⃣ Horarios", "4️⃣ Ubicación", "5️⃣ WiFi"]
 
 export default function ChatbotPage() {
-  const [messages, setMessages] = useState<Message[]>([INITIAL_MSG])
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [typing, setTyping] = useState(false)
   const [botState, setBotState] = useState("main")
   const [quickReplies, setQuickReplies] = useState<string[]>(INITIAL_QUICK)
   const bottomRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setMessages([{ ...INITIAL_MSG, time: getTime() }])
+  }, [])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -40,7 +49,7 @@ export default function ChatbotPage() {
   const send = async (text: string) => {
     if (!text.trim() || typing) return
 
-    const now = new Date().toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })
+    const now = getTime()
     setMessages((prev) => [...prev, { id: Date.now(), text, from: "user", time: now }])
     setInput("")
     setQuickReplies([])
@@ -63,7 +72,7 @@ export default function ChatbotPage() {
         id: Date.now() + 1,
         text: data.response,
         from: "bot",
-        time: new Date().toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" }),
+        time: getTime(),
       },
     ])
   }

@@ -1,53 +1,203 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import Link from "next/link"
+import { supabase } from "@/lib/supabase"
 
-type Order = {
+type Pedido = {
   id: string
-  name: string
-  items: string
-  time: string
-  status: "pendiente" | "listo" | "entregado"
+  nombre: string
+  items: { name: string; price: number; qty: number }[]
+  total: number
+  estado: "pendiente" | "listo" | "entregado"
+  created_at: string
 }
 
-const mockOrders: Order[] = [
-  { id: "001", name: "Diego Ramírez", items: "Latte + Croissant Jamón-Queso", time: "09:14", status: "pendiente" },
-  { id: "002", name: "Valentina Torres", items: "Desayuno Full x2", time: "09:22", status: "pendiente" },
-  { id: "003", name: "Martín González", items: "Americano Doble + Pie de Limón", time: "09:35", status: "listo" },
-  { id: "004", name: "Camila Soto", items: "Proteico + Jugo Naranja", time: "09:41", status: "entregado" },
-]
+function formatTime(dateStr: string) {
+  return new Date(dateStr).toLocaleTimeString("es-CL", {
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
+function formatItems(raw: unknown): string {
+  let items = raw
+  if (typeof items === "string") {
+    try {
+      items = JSON.parse(items)
+    } catch {
+      return items as string
+    }
+  }
+  if (!Array.isArray(items)) return String(items)
+  return items.map((i: { qty: number; name: string }) => `${i.qty}x ${i.name}`).join(" + ")
+}
+
+function isToday(dateStr: string) {
+  const d = new Date(dateStr)
+  const now = new Date()
+  return (
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate()
+  )
+}
+
+// Audio context persistente para no ser bloqueado por el navegador
+let audioCtx: AudioContext | null = null
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new AudioContext()
+  }
+  // Resumir en caso de que esté suspendido
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume()
+  }
+}
+
+function playNotification() {
+  if (!audioCtx) return
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume()
+  }
+  const osc = audioCtx.createOscillator()
+  const gain = audioCtx.createGain()
+  osc.connect(gain)
+  gain.connect(audioCtx.destination)
+  osc.type = "sine"
+  gain.gain.value = 0.4
+  const t = audioCtx.currentTime
+  // Sonido tipo "ding-dong" más notorio
+  osc.frequency.setValueAtTime(880, t)
+  osc.frequency.setValueAtTime(1100, t + 0.12)
+  osc.frequency.setValueAtTime(880, t + 0.24)
+  osc.frequency.setValueAtTime(1100, t + 0.36)
+  gain.gain.setValueAtTime(0.4, t)
+  gain.gain.setValueAtTime(0.4, t + 0.4)
+  gain.gain.linearRampToValueAtTime(0, t + 0.6)
+  osc.start(t)
+  osc.stop(t + 0.6)
+}
 
 export default function DashboardPage() {
-  const [orders, setOrders] = useState<Order[]>(mockOrders)
-  const [showMenu, setShowMenu] = useState(false)
-  const [menuText, setMenuText] = useState("")
-  const [sent, setSent] = useState(false)
+  const [pedidos, setPedidos] = useState<Pedido[]>([])
+  const [loading, setLoading] = useState(true)
+  const [audioReady, setAudioReady] = useState(false)
+  const initialLoadDone = useRef(false)
 
-  const markListo = (id: string) =>
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: "listo" } : o)))
+  const fetchPedidos = useCallback(async () => {
+    const { data } = await supabase
+      .from("pedidos")
+      .select("*")
+      .order("created_at", { ascending: false })
 
-  const markEntregado = (id: string) =>
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: "entregado" } : o)))
+    if (data) {
+      // Solo pedidos de hoy
+      setPedidos((data as Pedido[]).filter((p) => isToday(p.created_at)))
+    }
+    setLoading(false)
+  }, [])
 
-  const handleSendMenu = () => {
-    setSent(true)
-    setTimeout(() => { setSent(false); setShowMenu(false); setMenuText("") }, 2000)
+  const activarAlertas = () => {
+    initAudio()
+    setAudioReady(true)
+    // Sonido de confirmación suave
+    playNotification()
   }
 
-  const pendientes = orders.filter((o) => o.status === "pendiente")
-  const listos = orders.filter((o) => o.status === "listo")
-  const entregados = orders.filter((o) => o.status === "entregado")
+  useEffect(() => {
+    fetchPedidos()
+
+    const channel = supabase
+      .channel("pedidos-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "pedidos" },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            const nuevo = payload.new as Pedido
+            if (isToday(nuevo.created_at)) {
+              setPedidos((prev) => [nuevo, ...prev])
+              if (initialLoadDone.current) {
+                playNotification()
+              }
+            }
+          }
+          if (payload.eventType === "UPDATE") {
+            setPedidos((prev) =>
+              prev.map((p) =>
+                p.id === (payload.new as Pedido).id
+                  ? (payload.new as Pedido)
+                  : p
+              )
+            )
+          }
+          if (payload.eventType === "DELETE") {
+            setPedidos((prev) =>
+              prev.filter((p) => p.id !== (payload.old as Pedido).id)
+            )
+          }
+        }
+      )
+      .subscribe()
+
+    setTimeout(() => {
+      initialLoadDone.current = true
+    }, 2000)
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [fetchPedidos])
+
+  const updateEstado = async (id: string, estado: string) => {
+    await supabase.from("pedidos").update({ estado }).eq("id", id)
+  }
+
+  const pendientes = pedidos.filter((p) => p.estado === "pendiente")
+  const listos = pedidos.filter((p) => p.estado === "listo")
+  const entregados = pedidos.filter((p) => p.estado === "entregado")
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#faf7f2] flex items-center justify-center">
+        <p className="text-[#8b5e3c]">Cargando pedidos...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#faf7f2] font-[family-name:var(--font-inter)]">
+      {/* BANNER ACTIVAR ALERTAS */}
+      {!audioReady && (
+        <button
+          onClick={activarAlertas}
+          className="w-full bg-[#c4a882] text-[#2c1810] py-3 px-5 flex items-center justify-center gap-2 font-semibold text-sm active:scale-95 transition-transform"
+        >
+          <span className="text-lg">🔔</span>
+          Toca aquí para activar alertas de pedidos
+        </button>
+      )}
 
       {/* HEADER */}
       <div className="bg-[#2c1810] px-5 pt-10 pb-6">
-        <p className="text-[#a67c5b] text-xs tracking-widest uppercase">Panel del local</p>
-        <h1 className="text-2xl font-[family-name:var(--font-playfair)] text-[#faf7f2] mt-1">
-          Coffee and Break
-        </h1>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[#a67c5b] text-xs tracking-widest uppercase">
+              Panel del local · En vivo
+            </p>
+            <h1 className="text-2xl font-[family-name:var(--font-playfair)] text-[#faf7f2] mt-1">
+              Coffee and Break
+            </h1>
+          </div>
+          {audioReady && (
+            <span className="text-xs text-green-400 flex items-center gap-1">
+              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              Alertas activas
+            </span>
+          )}
+        </div>
         <div className="flex gap-4 mt-4">
           <div className="bg-[#1a0f0a] rounded-2xl px-4 py-3 flex-1 text-center">
             <p className="text-2xl font-bold text-[#c4a882] font-[family-name:var(--font-playfair)]">
@@ -71,23 +221,31 @@ export default function DashboardPage() {
       </div>
 
       {/* PEDIDOS */}
-      <div className="px-5 py-6 space-y-3 pb-32">
-
+      <div className="px-5 py-6 space-y-3 pb-12">
         {/* PENDIENTES */}
         {pendientes.length > 0 && (
           <div>
-            <p className="text-xs uppercase tracking-widest text-[#8b5e3c] mb-2">🔴 Pendientes</p>
+            <p className="text-xs uppercase tracking-widest text-[#8b5e3c] mb-2">
+              🔴 Pendientes
+            </p>
             <div className="space-y-2">
-              {pendientes.map((o) => (
-                <div key={o.id} className="bg-white rounded-2xl p-4 border-l-4 border-yellow-400 shadow-sm">
+              {pendientes.map((p) => (
+                <div
+                  key={p.id}
+                  className="bg-white rounded-2xl p-4 border-l-4 border-yellow-400 shadow-sm animate-fade-in"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
-                      <p className="font-semibold text-[#2c1810]">{o.name}</p>
-                      <p className="text-[#6b4423] text-sm mt-0.5">{o.items}</p>
-                      <p className="text-[#a67c5b] text-xs mt-1">{o.time} hrs</p>
+                      <p className="font-semibold text-[#2c1810]">{p.nombre}</p>
+                      <p className="text-[#6b4423] text-sm mt-0.5">
+                        {formatItems(p.items)}
+                      </p>
+                      <p className="text-[#a67c5b] text-xs mt-1">
+                        {formatTime(p.created_at)} hrs
+                      </p>
                     </div>
                     <button
-                      onClick={() => markListo(o.id)}
+                      onClick={() => updateEstado(p.id, "listo")}
                       className="bg-[#2c1810] text-white text-sm font-semibold px-4 py-2 rounded-xl flex-shrink-0 active:scale-95 transition-transform"
                     >
                       Listo ✓
@@ -102,18 +260,27 @@ export default function DashboardPage() {
         {/* LISTOS */}
         {listos.length > 0 && (
           <div>
-            <p className="text-xs uppercase tracking-widest text-[#8b5e3c] mb-2">🟢 Listos para entregar</p>
+            <p className="text-xs uppercase tracking-widest text-[#8b5e3c] mb-2">
+              🟢 Listos para entregar
+            </p>
             <div className="space-y-2">
-              {listos.map((o) => (
-                <div key={o.id} className="bg-white rounded-2xl p-4 border-l-4 border-green-400 shadow-sm">
+              {listos.map((p) => (
+                <div
+                  key={p.id}
+                  className="bg-white rounded-2xl p-4 border-l-4 border-green-400 shadow-sm"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
-                      <p className="font-semibold text-[#2c1810]">{o.name}</p>
-                      <p className="text-[#6b4423] text-sm mt-0.5">{o.items}</p>
-                      <p className="text-[#a67c5b] text-xs mt-1">{o.time} hrs</p>
+                      <p className="font-semibold text-[#2c1810]">{p.nombre}</p>
+                      <p className="text-[#6b4423] text-sm mt-0.5">
+                        {formatItems(p.items)}
+                      </p>
+                      <p className="text-[#a67c5b] text-xs mt-1">
+                        {formatTime(p.created_at)} hrs
+                      </p>
                     </div>
                     <button
-                      onClick={() => markEntregado(o.id)}
+                      onClick={() => updateEstado(p.id, "entregado")}
                       className="bg-green-500 text-white text-sm font-semibold px-4 py-2 rounded-xl flex-shrink-0 active:scale-95 transition-transform"
                     >
                       Entregado
@@ -128,26 +295,48 @@ export default function DashboardPage() {
         {/* ENTREGADOS */}
         {entregados.length > 0 && (
           <div>
-            <p className="text-xs uppercase tracking-widest text-[#8b5e3c] mb-2">✅ Entregados hoy</p>
+            <p className="text-xs uppercase tracking-widest text-[#8b5e3c] mb-2">
+              ✅ Entregados hoy
+            </p>
             <div className="space-y-2">
-              {entregados.map((o) => (
-                <div key={o.id} className="bg-white rounded-2xl p-4 opacity-50">
-                  <p className="font-semibold text-[#2c1810] text-sm line-through">{o.name}</p>
-                  <p className="text-[#8b5e3c] text-xs">{o.items}</p>
+              {entregados.map((p) => (
+                <div
+                  key={p.id}
+                  className="bg-white rounded-2xl p-4 opacity-50"
+                >
+                  <p className="font-semibold text-[#2c1810] text-sm line-through">
+                    {p.nombre}
+                  </p>
+                  <p className="text-[#8b5e3c] text-xs">{formatItems(p.items)}</p>
                 </div>
               ))}
             </div>
           </div>
         )}
 
+        {/* SIN PEDIDOS */}
+        {pedidos.length === 0 && (
+          <div className="text-center py-20">
+            <p className="text-4xl mb-4">☕</p>
+            <p className="text-[#8b5e3c] text-lg font-[family-name:var(--font-playfair)]">
+              Sin pedidos aún
+            </p>
+            <p className="text-[#a67c5b] text-sm mt-1">
+              Los pedidos aparecerán aquí automáticamente
+            </p>
+          </div>
+        )}
+
         {/* LINKS */}
         <div className="pt-4">
-          <p className="text-xs uppercase tracking-widest text-[#8b5e3c] mb-2">Accesos rápidos</p>
+          <p className="text-xs uppercase tracking-widest text-[#8b5e3c] mb-2">
+            Accesos rápidos
+          </p>
           <div className="grid grid-cols-2 gap-2">
             {[
               { label: "Ver pantalla", href: "/pantalla", emoji: "🖥️" },
               { label: "Ver carta", href: "/menu", emoji: "📋" },
-              { label: "Especial del día", href: "/manager", emoji: "⭐" },
+              { label: "Chatbot", href: "/chatbot", emoji: "🤖" },
               { label: "Sitio web", href: "/", emoji: "🌐" },
             ].map((l) => (
               <Link
@@ -163,46 +352,15 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* BOTÓN FLOTANTE — MENÚ DEL DÍA */}
-      <div className="fixed bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-[#faf7f2] to-transparent">
-        <button
-          onClick={() => setShowMenu(true)}
-          className="w-full bg-[#2c1810] text-[#faf7f2] py-4 rounded-2xl font-semibold text-base shadow-lg active:scale-95 transition-transform"
-        >
-          📢 Enviar menú del día por WhatsApp
-        </button>
-      </div>
-
-      {/* MODAL MENÚ DEL DÍA */}
-      {showMenu && (
-        <div className="fixed inset-0 bg-black/50 flex items-end z-50" onClick={() => setShowMenu(false)}>
-          <div
-            className="bg-white w-full rounded-t-3xl p-6 pb-10"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="w-12 h-1 bg-[#e2d4c0] rounded-full mx-auto mb-6" />
-            <p className="text-xs uppercase tracking-widest text-[#8b5e3c] mb-1">WhatsApp masivo</p>
-            <h2 className="text-2xl font-[family-name:var(--font-playfair)] text-[#2c1810] mb-4">
-              Menú del día
-            </h2>
-            <textarea
-              value={menuText}
-              onChange={(e) => setMenuText(e.target.value)}
-              placeholder="Ej: Hoy tenemos Tarta de Limón, Capuccino doble y Sandwich de Ave Palta 🥑☕"
-              rows={4}
-              className="w-full border-2 border-[#e2d4c0] rounded-2xl p-4 text-[#2c1810] focus:outline-none focus:border-[#6b4423] resize-none text-sm"
-            />
-            <button
-              onClick={handleSendMenu}
-              className={`w-full mt-3 py-4 rounded-2xl font-semibold text-base transition-colors ${
-                sent ? "bg-green-500 text-white" : "bg-[#2c1810] text-white"
-              }`}
-            >
-              {sent ? "¡Enviado a todos! ✓" : "Enviar a toda la lista →"}
-            </button>
-          </div>
-        </div>
-      )}
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-out;
+        }
+      `}</style>
     </div>
   )
 }
