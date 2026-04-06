@@ -83,8 +83,7 @@ export default function Home() {
               {content}
             </div>
           )
-        }
-        ))}
+        })}
       </section>
 
       {/* FOTO GRID */}
