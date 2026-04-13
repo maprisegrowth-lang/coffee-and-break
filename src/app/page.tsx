@@ -58,10 +58,6 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="hero-text-4 absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2">
-          <span className="text-white/30 text-[10px] tracking-[0.3em] uppercase">Scroll</span>
-          <div className="w-px h-8 bg-gradient-to-b from-white/40 to-transparent animate-pulse" />
-        </div>
       </section>
 
       {/* ═══ EDITORIAL: STATEMENT ═══ */}
