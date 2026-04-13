@@ -72,53 +72,53 @@ export default function Home() {
       {/* ═══ EDITORIAL: VIDEO GRID ASIMÉTRICO ═══ */}
       <section className="px-4 md:px-8">
         {/* Row 1: Café grande + Comida */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
-          <div className="md:col-span-7 relative h-[28rem] md:h-[32rem] overflow-hidden group reveal">
+        <div className="grid grid-cols-2 md:grid-cols-12 gap-2 md:gap-4 mb-2 md:mb-4">
+          <div className="md:col-span-7 relative h-[14rem] md:h-[32rem] overflow-hidden group reveal">
             <AutoPlayVideo
               src="/videos/steam-cup-web.mp4"
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] ease-out group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-[1]" />
-            <div className="absolute bottom-8 left-8 z-[2]">
-              <p className="text-white/50 text-xs tracking-[0.3em] uppercase mb-2">El ritual</p>
-              <p className="text-white font-[family-name:var(--font-playfair)] text-3xl md:text-4xl">Café humeante</p>
+            <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 z-[2]">
+              <p className="text-white/50 text-[10px] md:text-xs tracking-[0.3em] uppercase mb-1 md:mb-2">El ritual</p>
+              <p className="text-white font-[family-name:var(--font-playfair)] text-lg md:text-4xl">Café humeante</p>
             </div>
           </div>
-          <div className="md:col-span-5 relative h-[28rem] md:h-[32rem] overflow-hidden group reveal reveal-delay-2">
+          <div className="md:col-span-5 relative h-[14rem] md:h-[32rem] overflow-hidden group reveal reveal-delay-2">
             <AutoPlayVideo
               src="/videos/croissant-web.mp4"
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] ease-out group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-[1]" />
-            <div className="absolute bottom-8 left-8 z-[2]">
-              <p className="text-white/50 text-xs tracking-[0.3em] uppercase mb-2">Artesanal</p>
-              <p className="text-white font-[family-name:var(--font-playfair)] text-3xl md:text-4xl">Croissant & Café</p>
+            <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 z-[2]">
+              <p className="text-white/50 text-[10px] md:text-xs tracking-[0.3em] uppercase mb-1 md:mb-2">Artesanal</p>
+              <p className="text-white font-[family-name:var(--font-playfair)] text-lg md:text-4xl">Croissant & Café</p>
             </div>
           </div>
         </div>
 
         {/* Row 2: Comida + Café (invertido) */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
-          <div className="md:col-span-5 relative h-[28rem] md:h-[32rem] overflow-hidden group reveal">
+        <div className="grid grid-cols-2 md:grid-cols-12 gap-2 md:gap-4 mb-2 md:mb-4">
+          <div className="md:col-span-5 relative h-[14rem] md:h-[32rem] overflow-hidden group reveal">
             <AutoPlayVideo
               src="/videos/yogurt-plate-web.mp4"
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] ease-out group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-[1]" />
-            <div className="absolute bottom-8 left-8 z-[2]">
-              <p className="text-white/50 text-xs tracking-[0.3em] uppercase mb-2">Fresco</p>
-              <p className="text-white font-[family-name:var(--font-playfair)] text-3xl md:text-4xl">Yogurt & Berries</p>
+            <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 z-[2]">
+              <p className="text-white/50 text-[10px] md:text-xs tracking-[0.3em] uppercase mb-1 md:mb-2">Fresco</p>
+              <p className="text-white font-[family-name:var(--font-playfair)] text-lg md:text-4xl">Yogurt & Berries</p>
             </div>
           </div>
-          <div className="md:col-span-7 relative h-[28rem] md:h-[32rem] overflow-hidden group reveal reveal-delay-2">
+          <div className="md:col-span-7 relative h-[14rem] md:h-[32rem] overflow-hidden group reveal reveal-delay-2">
             <AutoPlayVideo
               src="/videos/espresso-web.mp4"
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] ease-out group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-[1]" />
-            <div className="absolute bottom-8 left-8 z-[2]">
-              <p className="text-white/50 text-xs tracking-[0.3em] uppercase mb-2">Clásico</p>
-              <p className="text-white font-[family-name:var(--font-playfair)] text-3xl md:text-4xl">Espresso</p>
+            <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 z-[2]">
+              <p className="text-white/50 text-[10px] md:text-xs tracking-[0.3em] uppercase mb-1 md:mb-2">Clásico</p>
+              <p className="text-white font-[family-name:var(--font-playfair)] text-lg md:text-4xl">Espresso</p>
             </div>
           </div>
         </div>
