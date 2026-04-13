@@ -3,15 +3,15 @@
 import { useEffect, useState } from "react"
 import { menu, formatPrice } from "@/data/menu"
 
-type Plato = { nombre: string; precio: number }
-
 const CATEGORY_PHOTOS: Record<string, string> = {
   cafe: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=1920&auto=format&fit=crop",
   dulces: "https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=1920&auto=format&fit=crop",
-  salados: "https://images.unsplash.com/photo-1484723091739-30990b8e9dc4?q=80&w=1920&auto=format&fit=crop",
+  salados: "https://images.unsplash.com/photo-1619096252214-ef06c45683e3?q=80&w=1920&auto=format&fit=crop",
   desayunos: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?q=80&w=1920&auto=format&fit=crop",
   bebidasfrias: "https://images.unsplash.com/photo-1544145945-f90425340c7e?q=80&w=1920&auto=format&fit=crop",
   jugos: "https://images.unsplash.com/photo-1622597467836-f3285f2131b8?q=80&w=1920&auto=format&fit=crop",
+  infusiones: "https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?q=80&w=1920&auto=format&fit=crop",
+  extras: "https://images.unsplash.com/photo-1550583724-b2692b85b150?q=80&w=1920&auto=format&fit=crop",
 }
 
 export default function PantallaPage() {
@@ -19,7 +19,6 @@ export default function PantallaPage() {
   const [date, setDate] = useState("")
   const [activeCategory, setActiveCategory] = useState(0)
   const [fade, setFade] = useState(true)
-  const [plato, setPlato] = useState<Plato | null>(null)
 
   useEffect(() => {
     const update = () => {
@@ -37,16 +36,6 @@ export default function PantallaPage() {
       setFade(false)
       setTimeout(() => { setActiveCategory((p) => (p + 1) % menu.length); setFade(true) }, 500)
     }, 8000)
-    return () => clearInterval(i)
-  }, [])
-
-  useEffect(() => {
-    const fetchPlato = () =>
-      fetch("/api/plato").then((r) => r.json()).then((d) => {
-        if (d.nombre) setPlato(d)
-      }).catch(() => {})
-    fetchPlato()
-    const i = setInterval(fetchPlato, 15000)
     return () => clearInterval(i)
   }, [])
 
@@ -73,7 +62,7 @@ export default function PantallaPage() {
               Coffee <span className="italic text-[#c4a882]">and Break</span>
             </h1>
             <p className="text-white/40 text-xs tracking-[0.4em] uppercase mt-1">
-              Café · Desayunos · Salados · Santiago
+              Café · Desayunos · Salados
             </p>
           </div>
           <div className="text-right">
@@ -91,8 +80,7 @@ export default function PantallaPage() {
 
           {/* LEFT — MENÚ ROTATIVO */}
           <div className="flex-1 flex flex-col" style={{ opacity: fade ? 1 : 0, transition: "opacity 0.5s ease" }}>
-            <div className="flex items-baseline gap-4 mb-8">
-              <span className="text-5xl">{currentCat.emoji}</span>
+            <div className="mb-8">
               <h2 className="text-5xl font-[family-name:var(--font-playfair)] text-white" style={{ letterSpacing: "-0.01em" }}>
                 {currentCat.name}
               </h2>
@@ -139,69 +127,39 @@ export default function PantallaPage() {
           {/* RIGHT */}
           <div className="w-72 flex flex-col gap-5">
 
-            {/* PLATO DEL DÍA */}
-            {plato ? (
-              <div
-                className="flex-1 rounded-3xl p-7 flex flex-col justify-between"
-                style={{
-                  background: "linear-gradient(145deg, rgba(250,247,242,0.15) 0%, rgba(196,168,130,0.1) 100%)",
-                  backdropFilter: "blur(20px)",
-                  border: "1px solid rgba(196,168,130,0.3)",
-                }}
-              >
-                <div>
-                  <div className="flex items-center gap-2 mb-6">
-                    <div className="w-2 h-2 rounded-full bg-[#c4a882]" />
-                    <p className="text-[#c4a882] text-xs tracking-[0.3em] uppercase font-semibold">
-                      Plato del día
-                    </p>
-                  </div>
-                  <h3 className="text-4xl font-[family-name:var(--font-playfair)] text-white leading-tight">
-                    {plato.nombre}
-                  </h3>
-                </div>
-                <div>
-                  <div className="h-px bg-white/15 my-5" />
-                  <p className="text-5xl font-[family-name:var(--font-playfair)] text-[#c4a882]" style={{ letterSpacing: "-0.02em" }}>
-                    {formatPrice(plato.precio)}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div
-                className="flex-1 rounded-3xl p-7 flex items-center justify-center"
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px dashed rgba(255,255,255,0.15)" }}
-              >
-                <p className="text-white/20 text-sm text-center">Plato del día<br />no configurado</p>
-              </div>
-            )}
-
-            {/* WHATSAPP */}
+            {/* QR PEDIDO ANTICIPADO */}
             <div
-              className="rounded-3xl p-5"
-              style={{ background: "rgba(0,92,75,0.4)", backdropFilter: "blur(20px)", border: "1px solid rgba(0,168,132,0.3)" }}
+              className="flex-1 rounded-3xl p-7 flex flex-col items-center justify-center text-center"
+              style={{
+                background: "linear-gradient(145deg, rgba(250,247,242,0.15) 0%, rgba(196,168,130,0.1) 100%)",
+                backdropFilter: "blur(20px)",
+                border: "1px solid rgba(196,168,130,0.3)",
+              }}
             >
-              <p className="text-green-300 text-xs tracking-widest uppercase mb-2">Pedido anticipado</p>
-              <p className="text-white/70 text-sm mb-3">Escríbenos antes de bajar y lo tenemos listo.</p>
-              <div className="rounded-2xl py-2.5 text-center bg-green-600/50">
-                <p className="text-white font-semibold text-sm">+56 9 1234 5678</p>
+              <p className="text-[#c4a882] text-xs tracking-[0.3em] uppercase font-semibold mb-4">
+                Pedido anticipado
+              </p>
+              <div className="w-40 h-40 bg-white rounded-2xl flex items-center justify-center mb-4">
+                <div className="text-[#2c1810] text-center px-3">
+                  <p className="text-xs font-semibold">QR</p>
+                  <p className="text-[10px] text-[#8b5e3c] mt-1">Próximamente</p>
+                </div>
               </div>
+              <p className="text-white/50 text-sm leading-relaxed">
+                Escanea y pide antes de bajar.
+              </p>
+              <p className="text-white/30 text-xs mt-1">
+                Lo tenemos listo cuando llegues.
+              </p>
             </div>
 
-            {/* WIFI + INSTAGRAM */}
+            {/* INSTAGRAM */}
             <div
-              className="rounded-3xl p-5 flex justify-between items-center"
+              className="rounded-3xl p-5 text-center"
               style={{ background: "rgba(255,255,255,0.06)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.1)" }}
             >
-              <div>
-                <p className="text-white/30 text-xs tracking-widest uppercase mb-1">WiFi</p>
-                <p className="text-[#c4a882] text-sm font-semibold">coffeeandbreak</p>
-                <p className="text-white/30 text-xs">cafebreak2026</p>
-              </div>
-              <div className="text-right">
-                <p className="text-white/30 text-xs tracking-widest uppercase mb-1">Instagram</p>
-                <p className="text-[#c4a882] text-sm font-semibold">@coffeeandbreak</p>
-              </div>
+              <p className="text-white/30 text-xs tracking-widest uppercase mb-1">Síguenos</p>
+              <p className="text-[#c4a882] text-sm font-semibold">@coffee_and_break_cl</p>
             </div>
           </div>
         </div>
@@ -212,11 +170,10 @@ export default function PantallaPage() {
             <button
               key={cat.id}
               onClick={() => { setFade(false); setTimeout(() => { setActiveCategory(i); setFade(true) }, 400) }}
-              className="flex items-center gap-1.5 transition-all text-sm"
+              className="transition-all text-sm"
               style={{ color: i === activeCategory ? "#c4a882" : "rgba(255,255,255,0.25)" }}
             >
-              <span>{cat.emoji}</span>
-              <span>{cat.name}</span>
+              {cat.name}
             </button>
           ))}
         </div>

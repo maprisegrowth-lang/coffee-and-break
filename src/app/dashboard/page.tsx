@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 
 type Pedido = {
@@ -376,29 +375,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* LINKS */}
-        <div className="pt-4">
-          <p className="text-xs uppercase tracking-widest text-[#8b5e3c] mb-2">
-            Accesos rápidos
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { label: "Ver pantalla", href: "/pantalla", emoji: "🖥️" },
-              { label: "Ver carta", href: "/menu", emoji: "📋" },
-              { label: "Chatbot", href: "/chatbot", emoji: "🤖" },
-              { label: "Sitio web", href: "/", emoji: "🌐" },
-            ].map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className="bg-white border border-[#e2d4c0] rounded-2xl p-4 flex items-center gap-2 text-sm text-[#2c1810] hover:border-[#6b4423] transition-colors"
-              >
-                <span>{l.emoji}</span>
-                <span>{l.label}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
       </div>
 
       <style>{`

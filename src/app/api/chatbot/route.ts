@@ -16,7 +16,7 @@ type BotResponse = {
 }
 
 const MAIN_MENU_TEXT = `Hola 👋 Bienvenido a *Coffee and Break*\n\n¿En qué te puedo ayudar?`
-const MAIN_QUICK = ["1️⃣ Hacer un pedido", "2️⃣ Ver la carta", "3️⃣ Horarios", "4️⃣ Ubicación", "5️⃣ WiFi"]
+const MAIN_QUICK = ["1️⃣ Hacer un pedido", "2️⃣ Ver la carta", "3️⃣ Horarios", "4️⃣ Ubicación"]
 
 function buildCategoryList() {
   return (
@@ -84,21 +84,14 @@ function getBotResponse(message: string, state: BotState): BotResponse & { shoul
     }
     if (num === 3 || msg.match(/horario|hora|abren|cierran/)) {
       return {
-        response: `🕐 *Horarios*\n\n📅 Lunes a Viernes: 8:00 — 19:00\n📅 Sábado: 9:00 — 15:00\n📅 Domingo: Cerrado`,
+        response: `🕐 *Horarios*\n\n📅 Lunes a Viernes: 9:00 — 18:00\n📅 Sábado: 10:00 — 13:00\n📅 Domingo: Cerrado`,
         state: "main",
         quickReplies: MAIN_QUICK,
       }
     }
     if (num === 4 || msg.match(/donde|ubicacion|llegar/)) {
       return {
-        response: `📍 *Ubicación*\n\nSantiago Centro, nivel bajo de las oficinas.\n🅿️ Estacionamiento disponible.`,
-        state: "main",
-        quickReplies: MAIN_QUICK,
-      }
-    }
-    if (num === 5 || msg.match(/wifi|clave|internet/)) {
-      return {
-        response: `📶 *WiFi Gratis*\n\nRed: *coffeeandbreak*\nClave: *cafebreak2026*`,
+        response: `📍 *Ubicación*\n\nAv. La Dehesa 1844, Local 116.`,
         state: "main",
         quickReplies: MAIN_QUICK,
       }

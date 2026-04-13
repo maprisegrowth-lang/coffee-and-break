@@ -28,7 +28,7 @@ const INITIAL_MSG: Message = {
   time: "",
 }
 
-const INITIAL_QUICK = ["1️⃣ Hacer un pedido", "2️⃣ Ver la carta", "3️⃣ Horarios", "4️⃣ Ubicación", "5️⃣ WiFi"]
+const INITIAL_QUICK = ["1️⃣ Hacer un pedido", "2️⃣ Ver la carta", "3️⃣ Horarios", "4️⃣ Ubicación"]
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState<Message[]>([])
@@ -106,9 +106,6 @@ export default function ChatbotPage() {
       >
         {/* HEADER */}
         <div className="flex items-center gap-3 px-4 py-3" style={{ background: "#202c33" }}>
-          <div className="w-10 h-10 rounded-full bg-[#6b4423] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-            C&B
-          </div>
           <div className="flex-1">
             <p className="text-[#e9edef] font-semibold text-sm">Coffee and Break</p>
             <p className="text-[#8696a0] text-xs">Bot · responde al instante</p>
