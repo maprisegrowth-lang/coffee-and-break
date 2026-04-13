@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+/* Hide default browser play/pause overlay on videos */
+video::-webkit-media-controls,
+video::-webkit-media-controls-panel,
+video::-webkit-media-controls-play-button,
+video::-webkit-media-controls-start-playback-button,
+video::-webkit-media-controls-overlay-play-button {
+  display: none !important;
+  -webkit-appearance: none;
+  opacity: 0;
+  pointer-events: none;
+}
+video::-moz-media-controls {
+  display: none !important;
+}
+video {
+  -webkit-media-controls-panel: none;
+}
+
 @theme inline {
   --color-cafe-900: #1a0f0a;
   --color-cafe-800: #2c1810;
