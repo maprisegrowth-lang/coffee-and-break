@@ -20,3 +20,237 @@ body {
   color: var(--color-cafe-900);
   font-family: var(--font-inter), Arial, sans-serif;
 }
+
+/* ═══════════════════════════════════════════
+   CINEMAGRAPH & ANIMATION SYSTEM
+   ═══════════════════════════════════════════ */
+
+/* Ken Burns - slow cinematic zoom */
+@keyframes kenBurns {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes kenBurnsAlt {
+  0% { transform: scale(1.05) translate(0, 0); }
+  50% { transform: scale(1) translate(-1%, 1%); }
+  100% { transform: scale(1.05) translate(0, 0); }
+}
+
+/* Steam / vapor rising effect */
+@keyframes steamRise {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scaleX(1);
+  }
+  15% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.3;
+    transform: translateY(-40px) scaleX(1.3);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-80px) scaleX(0.8);
+  }
+}
+
+/* Liquid shimmer overlay */
+@keyframes liquidShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Subtle light flicker */
+@keyframes lightFlicker {
+  0%, 100% { opacity: 0.03; }
+  25% { opacity: 0.06; }
+  50% { opacity: 0.02; }
+  75% { opacity: 0.05; }
+}
+
+/* Fade in up for scroll reveals */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hero text entrance */
+@keyframes heroSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heroFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Ripple / liquid surface effect */
+@keyframes ripple {
+  0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.4; }
+  50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.1; }
+  100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.4; }
+}
+
+/* Warm glow pulse */
+@keyframes warmGlow {
+  0%, 100% { box-shadow: inset 0 0 60px rgba(196, 168, 130, 0); }
+  50% { box-shadow: inset 0 0 60px rgba(196, 168, 130, 0.15); }
+}
+
+/* ═══════════════════════════════════════════
+   CINEMAGRAPH COMPONENTS
+   ═══════════════════════════════════════════ */
+
+/* Steam particles overlay */
+.cinemagraph-steam::after {
+  content: "";
+  position: absolute;
+  bottom: 30%;
+  left: 30%;
+  width: 40%;
+  height: 50%;
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(255,255,255,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 60% 70%, rgba(255,255,255,0.1) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 90%, rgba(255,255,255,0.12) 0%, transparent 45%);
+  animation: steamRise 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.cinemagraph-steam-delayed::after {
+  content: "";
+  position: absolute;
+  bottom: 25%;
+  left: 35%;
+  width: 35%;
+  height: 45%;
+  background:
+    radial-gradient(ellipse at 40% 85%, rgba(255,255,255,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 75%, rgba(255,255,255,0.08) 0%, transparent 40%);
+  animation: steamRise 5s ease-in-out 1.5s infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Liquid shimmer on image */
+.cinemagraph-shimmer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.08) 45%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.08) 55%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  animation: liquidShimmer 6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Warm ambient glow */
+.cinemagraph-glow {
+  animation: warmGlow 4s ease-in-out infinite;
+}
+
+/* Ken Burns on images */
+.cinemagraph-zoom img,
+.cinemagraph-zoom video {
+  animation: kenBurns 20s ease-in-out infinite;
+}
+
+.cinemagraph-zoom-alt img,
+.cinemagraph-zoom-alt video {
+  animation: kenBurnsAlt 18s ease-in-out infinite;
+}
+
+/* Light flicker overlay */
+.cinemagraph-flicker::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 30%, rgba(196, 168, 130, 0.4), transparent 70%);
+  animation: lightFlicker 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ═══════════════════════════════════════════
+   SCROLL REVEAL
+   ═══════════════════════════════════════════ */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.reveal.visible {
+  animation: fadeInUp 0.8s ease forwards;
+}
+
+.reveal-delay-1 { animation-delay: 0.1s !important; }
+.reveal-delay-2 { animation-delay: 0.2s !important; }
+.reveal-delay-3 { animation-delay: 0.3s !important; }
+.reveal-delay-4 { animation-delay: 0.4s !important; }
+
+/* ═══════════════════════════════════════════
+   HERO ENTRANCE ANIMATIONS
+   ═══════════════════════════════════════════ */
+
+.hero-text-1 {
+  animation: heroSlideIn 1s ease 0.3s both;
+}
+
+.hero-text-2 {
+  animation: heroSlideIn 1s ease 0.6s both;
+}
+
+.hero-text-3 {
+  animation: heroSlideIn 1s ease 0.9s both;
+}
+
+.hero-text-4 {
+  animation: heroFadeIn 1s ease 1.2s both;
+}
+
+/* ═══════════════════════════════════════════
+   SMOOTH SCROLL
+   ═══════════════════════════════════════════ */
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Video as background */
+.video-bg {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
