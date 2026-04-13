@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useState } from "react"
 
 export default function AutoPlayVideo({
   src,
@@ -12,13 +12,25 @@ export default function AutoPlayVideo({
   poster?: string
 }) {
   const ref = useRef<HTMLVideoElement>(null)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
     const video = ref.current
     if (!video) return
 
-    // Play on mount
-    video.play().catch(() => {})
+    // Mark ready once video can play
+    const onCanPlay = () => {
+      setReady(true)
+      video.play().catch(() => {})
+    }
+
+    video.addEventListener("canplay", onCanPlay)
+
+    // If already loaded (cached)
+    if (video.readyState >= 3) {
+      setReady(true)
+      video.play().catch(() => {})
+    }
 
     // Play when page becomes visible again (tab switch)
     const onVisibility = () => {
@@ -40,22 +52,27 @@ export default function AutoPlayVideo({
     observer.observe(video)
 
     return () => {
+      video.removeEventListener("canplay", onCanPlay)
       document.removeEventListener("visibilitychange", onVisibility)
       observer.disconnect()
     }
   }, [])
 
   return (
-    <video
-      ref={ref}
-      autoPlay
-      loop
-      muted
-      playsInline
-      poster={poster}
-      className={className}
-    >
-      <source src={src} type="video/mp4" />
-    </video>
+    <div className={className} style={{ background: "#1a0f0a" }}>
+      <video
+        ref={ref}
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        poster={poster}
+        className="w-full h-full object-cover"
+        style={{ opacity: ready ? 1 : 0, transition: "opacity 0.5s ease" }}
+      >
+        <source src={src} type="video/mp4" />
+      </video>
+    </div>
   )
 }
