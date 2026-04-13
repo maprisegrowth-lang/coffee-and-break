@@ -60,6 +60,7 @@ export default function AutoPlayVideo({
 
   return (
     <div className={className} style={{ background: "#1a0f0a" }}>
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <video
         ref={ref}
         autoPlay
@@ -67,9 +68,13 @@ export default function AutoPlayVideo({
         muted
         playsInline
         preload="auto"
+        controls={false}
+        disablePictureInPicture
+        disableRemotePlayback
+        controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
         poster={poster}
         className="w-full h-full object-cover"
-        style={{ opacity: ready ? 1 : 0, transition: "opacity 0.5s ease" }}
+        style={{ opacity: ready ? 1 : 0, transition: "opacity 0.5s ease", pointerEvents: "none" }}
       >
         <source src={src} type="video/mp4" />
       </video>
