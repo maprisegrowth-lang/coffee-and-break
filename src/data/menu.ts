@@ -80,13 +80,11 @@ export const menu: MenuCategory[] = [
     items: [
       { name: "Media Lunas", price: 1500, unit: "2 unidades" },
       { name: "Kuchen", price: 3500 },
-      { name: "Tarta del Día", price: 4500 },
       { name: "Pie de Limón", price: 3500 },
-      { name: "Torta de Nuez", price: 3000 },
+      { name: "Torta de Nuez", price: 3500 },
       { name: "Muffin Chocolate", price: 2000 },
       { name: "Muffin Arándano", price: 2000 },
       { name: "Donuts", price: 1500 },
-      { name: "Mini Donuts", price: 2000, unit: "3 unidades" },
     ],
   },
   {
@@ -98,8 +96,6 @@ export const menu: MenuCategory[] = [
       { name: "Panini Queso", price: 4000 },
       { name: "Panini Jamón-Queso", price: 4300 },
       { name: "Panini Jamón-Queso-Tomate", price: 4500 },
-      { name: "Sandwich Miga Ave Palta", price: 4700 },
-      { name: "Sandwich Miga Huevo-Ciboulette", price: 4000 },
       { name: "Tostadas con Palta", price: 5500 },
       { name: "Paila de Huevos", price: 5500 },
     ],

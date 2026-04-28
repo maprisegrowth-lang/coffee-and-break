@@ -42,25 +42,24 @@ function isToday(dateStr: string) {
   )
 }
 
-// Audio: usar archivo WAV
-let audioUnlocked = false
+// Audio: reusar misma instancia para compatibilidad iOS/iPad
+let sharedAudio: HTMLAudioElement | null = null
 
 function initAudio() {
-  // Reproducir una vez con interacción del usuario para desbloquear
-  const a = new Audio("/alert.wav")
-  a.volume = 1.0
-  a.play().then(() => {
-    audioUnlocked = true
+  sharedAudio = new Audio("/alert.wav")
+  sharedAudio.volume = 1.0
+  sharedAudio.play().then(() => {
     console.log("[ALERTA] Audio desbloqueado")
   }).catch((e) => console.error("[ALERTA] Error desbloqueando:", e))
 }
 
 function playNotification() {
-  console.log("[ALERTA] Intentando sonar, desbloqueado:", audioUnlocked)
-  // Siempre crear nueva instancia para evitar problemas de estado
-  const a = new Audio("/alert.wav")
-  a.volume = 1.0
-  a.play().then(() => {
+  if (!sharedAudio) {
+    sharedAudio = new Audio("/alert.wav")
+    sharedAudio.volume = 1.0
+  }
+  sharedAudio.currentTime = 0
+  sharedAudio.play().then(() => {
     console.log("[ALERTA] Sonó correctamente")
   }).catch((e) => console.error("[ALERTA] Error al sonar:", e))
 }

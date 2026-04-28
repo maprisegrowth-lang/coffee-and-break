@@ -154,7 +154,7 @@ function getBotResponse(message: string, state: BotState): BotResponse & { shoul
     const nombre = message.trim().charAt(0).toUpperCase() + message.trim().slice(1)
 
     return {
-      response: `✅ *¡Pedido confirmado!*\n\n👤 ${nombre}\n🛍️ ${item.name}\n💰 ${formatPrice(item.price)}\n\n_Lo tenemos listo en 5-10 minutos. Te avisamos cuando bajes._ ☕`,
+      response: `✅ *¡Pedido confirmado!*\n\n👤 ${nombre}\n🛍️ ${item.name}\n💰 ${formatPrice(item.price)}\n\n_En 10 minutos lo tenemos listo._ ☕`,
       state: "main",
       quickReplies: ["1️⃣ Pedir algo más", "👍 ¡Gracias!"],
       shouldSave: { nombre, item: { name: item.name, price: item.price } },

@@ -101,24 +101,24 @@ export default function Home() {
         <div className="grid grid-cols-2 md:grid-cols-12 gap-2 md:gap-4 mb-2 md:mb-4">
           <div className="md:col-span-5 relative h-[14rem] md:h-[32rem] overflow-hidden group reveal">
             <AutoPlayVideo
-              src="/videos/yogurt-plate-web.mp4"
+              src="/videos/tart-web.mp4"
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] ease-out group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-[1]" />
             <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 z-[2]">
-              <p className="text-white/50 text-[10px] md:text-xs tracking-[0.3em] uppercase mb-1 md:mb-2">Fresco</p>
-              <p className="text-white font-[family-name:var(--font-playfair)] text-lg md:text-4xl">Yogurt & Berries</p>
+              <p className="text-white/50 text-[10px] md:text-xs tracking-[0.3em] uppercase mb-1 md:mb-2">Dulce</p>
+              <p className="text-white font-[family-name:var(--font-playfair)] text-lg md:text-4xl">Kuchen & Tartas</p>
             </div>
           </div>
           <div className="md:col-span-7 relative h-[14rem] md:h-[32rem] overflow-hidden group reveal reveal-delay-2">
             <AutoPlayVideo
-              src="/videos/espresso-web.mp4"
+              src="/videos/coffee-beans-web.mp4"
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] ease-out group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-[1]" />
             <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 z-[2]">
-              <p className="text-white/50 text-[10px] md:text-xs tracking-[0.3em] uppercase mb-1 md:mb-2">Clásico</p>
-              <p className="text-white font-[family-name:var(--font-playfair)] text-lg md:text-4xl">Espresso</p>
+              <p className="text-white/50 text-[10px] md:text-xs tracking-[0.3em] uppercase mb-1 md:mb-2">Origen</p>
+              <p className="text-white font-[family-name:var(--font-playfair)] text-lg md:text-4xl">Granos de Café</p>
             </div>
           </div>
         </div>
@@ -179,11 +179,14 @@ export default function Home() {
           {[
             { title: "Horarios", lines: ["Lunes a Viernes", "9:00 – 18:00 hrs", "", "Sábado", "10:00 – 13:00 hrs"] },
             { title: "Ubicación", lines: ["Av. La Dehesa 1844", "Local 116", "", "", ""] },
-            { title: "Contacto", lines: ["Instagram: @coffee_and_break_cl", "", "Pedidos anticipados", "desde la web"] },
+            { title: "Contacto", lines: ["", "", "Pedidos anticipados", "desde la web"], hasInstagram: true },
           ].map((col, i) => (
             <div key={col.title} className={`reveal reveal-delay-${i + 1}`}>
               <h3 className="font-[family-name:var(--font-playfair)] text-2xl mb-4 text-[#c4a882]">{col.title}</h3>
               <div className="text-white/45 text-sm leading-relaxed">
+                {"hasInstagram" in col && col.hasInstagram && (
+                  <p><a href="https://www.instagram.com/coffee_and_break_cl/" target="_blank" rel="noopener noreferrer" className="text-[#c4a882] hover:text-white transition-colors">Instagram: @coffee_and_break_cl</a></p>
+                )}
                 {col.lines.map((line, j) => line ? <p key={j}>{line}</p> : <br key={j} />)}
               </div>
             </div>
