@@ -42,26 +42,73 @@ function isToday(dateStr: string) {
   )
 }
 
-// Audio: reusar misma instancia para compatibilidad iOS/iPad
-let sharedAudio: HTMLAudioElement | null = null
+// Audio: Web Audio API + silent keep-alive para iPad/iOS
+let audioCtx: AudioContext | null = null
+let alertBuffer: AudioBuffer | null = null
+let silentInterval: ReturnType<typeof setInterval> | null = null
+let wakeLock: WakeLockSentinel | null = null
 
-function initAudio() {
-  sharedAudio = new Audio("/alert.wav")
-  sharedAudio.volume = 1.0
-  sharedAudio.play().then(() => {
-    console.log("[ALERTA] Audio desbloqueado")
-  }).catch((e) => console.error("[ALERTA] Error desbloqueando:", e))
+async function initAudio() {
+  // Crear AudioContext (necesita gesto del usuario en iOS)
+  audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+
+  // Cargar el archivo de alerta como buffer
+  try {
+    const response = await fetch("/alert.wav")
+    const arrayBuffer = await response.arrayBuffer()
+    alertBuffer = await audioCtx.decodeAudioData(arrayBuffer)
+    console.log("[ALERTA] Audio cargado en Web Audio API")
+  } catch (e) {
+    console.error("[ALERTA] Error cargando audio:", e)
+  }
+
+  // Reproducir silencio cada 10s para mantener el AudioContext vivo en iOS
+  silentInterval = setInterval(() => {
+    if (audioCtx && audioCtx.state === "running") {
+      const osc = audioCtx.createOscillator()
+      const gain = audioCtx.createGain()
+      gain.gain.value = 0 // silencio total
+      osc.connect(gain)
+      gain.connect(audioCtx.destination)
+      osc.start()
+      osc.stop(audioCtx.currentTime + 0.01)
+    }
+    // Reactivar contexto si se suspendió
+    if (audioCtx && audioCtx.state === "suspended") {
+      audioCtx.resume()
+    }
+  }, 10000)
+
+  // Wake Lock: mantener pantalla encendida
+  try {
+    if ("wakeLock" in navigator) {
+      wakeLock = await navigator.wakeLock.request("screen")
+      console.log("[WAKE LOCK] Pantalla bloqueada encendida")
+      // Re-adquirir si se pierde (ej. al cambiar de tab y volver)
+      document.addEventListener("visibilitychange", async () => {
+        if (document.visibilityState === "visible" && !wakeLock) {
+          wakeLock = await navigator.wakeLock.request("screen")
+        }
+      })
+    }
+  } catch (e) {
+    console.log("[WAKE LOCK] No disponible:", e)
+  }
 }
 
 function playNotification() {
-  if (!sharedAudio) {
-    sharedAudio = new Audio("/alert.wav")
-    sharedAudio.volume = 1.0
+  if (!audioCtx || !alertBuffer) return
+
+  // Reactivar contexto si está suspendido
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume()
   }
-  sharedAudio.currentTime = 0
-  sharedAudio.play().then(() => {
-    console.log("[ALERTA] Sonó correctamente")
-  }).catch((e) => console.error("[ALERTA] Error al sonar:", e))
+
+  const source = audioCtx.createBufferSource()
+  source.buffer = alertBuffer
+  source.connect(audioCtx.destination)
+  source.start()
+  console.log("[ALERTA] Sonó correctamente")
 }
 
 export default function DashboardPage() {
@@ -123,11 +170,20 @@ export default function DashboardPage() {
     setLoading(false)
   }, [])
 
-  const activarAlertas = () => {
-    initAudio()
+  const activarAlertas = async () => {
+    await initAudio()
     setAudioReady(true)
     playNotification()
   }
+
+  // Limpieza al desmontar
+  useEffect(() => {
+    return () => {
+      if (silentInterval) clearInterval(silentInterval)
+      if (wakeLock) wakeLock.release()
+      if (audioCtx) audioCtx.close()
+    }
+  }, [])
 
   useEffect(() => {
     if (!authenticated) return
@@ -220,10 +276,15 @@ export default function DashboardPage() {
       {!audioReady && (
         <button
           onClick={activarAlertas}
-          className="w-full bg-[#c4a882] text-[#2c1810] py-3 px-5 flex items-center justify-center gap-2 font-semibold text-sm active:scale-95 transition-transform"
+          className="w-full bg-[#c4a882] text-[#2c1810] py-4 px-5 flex flex-col items-center justify-center gap-1 active:scale-95 transition-transform"
         >
-          <span className="text-lg">🔔</span>
-          Toca aquí para activar alertas de pedidos
+          <span className="flex items-center gap-2 font-semibold text-base">
+            <span className="text-lg">🔔</span>
+            Toca aquí para activar alertas
+          </span>
+          <span className="text-xs opacity-70">
+            La pantalla se mantendrá encendida y sonarán las alertas automáticamente
+          </span>
         </button>
       )}
 
