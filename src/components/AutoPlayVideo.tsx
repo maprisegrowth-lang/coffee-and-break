@@ -12,46 +12,52 @@ export default function AutoPlayVideo({
   poster?: string
 }) {
   const ref = useRef<HTMLVideoElement>(null)
-  const [ready, setReady] = useState(false)
+  const [playing, setPlaying] = useState(false)
+  const [blocked, setBlocked] = useState(false)
+
+  const posterSrc = poster ?? src.replace(/\.(mp4|webm|mov)$/i, ".jpg")
 
   useEffect(() => {
     const video = ref.current
     if (!video) return
 
-    // Mark ready once video can play
-    const onCanPlay = () => {
-      setReady(true)
-      video.play().catch(() => {})
+    let cancelled = false
+
+    const tryPlay = () => {
+      video.play().then(
+        () => {
+          if (cancelled) return
+          setPlaying(true)
+          setBlocked(false)
+        },
+        () => {
+          if (cancelled) return
+          setPlaying(false)
+          setBlocked(true)
+        }
+      )
     }
 
+    const onCanPlay = () => tryPlay()
     video.addEventListener("canplay", onCanPlay)
 
-    // If already loaded (cached)
-    if (video.readyState >= 3) {
-      setReady(true)
-      video.play().catch(() => {})
-    }
+    if (video.readyState >= 3) tryPlay()
 
-    // Play when page becomes visible again (tab switch)
     const onVisibility = () => {
-      if (document.visibilityState === "visible") {
-        video.play().catch(() => {})
-      }
+      if (document.visibilityState === "visible") tryPlay()
     }
     document.addEventListener("visibilitychange", onVisibility)
 
-    // Play when video enters viewport
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          video.play().catch(() => {})
-        }
+        if (entry.isIntersecting) tryPlay()
       },
       { threshold: 0.1 }
     )
     observer.observe(video)
 
     return () => {
+      cancelled = true
       video.removeEventListener("canplay", onCanPlay)
       document.removeEventListener("visibilitychange", onVisibility)
       observer.disconnect()
@@ -60,24 +66,33 @@ export default function AutoPlayVideo({
 
   return (
     <div className={className} style={{ background: "#1a0f0a" }}>
-      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-      <video
-        ref={ref}
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-        controls={false}
-        disablePictureInPicture
-        disableRemotePlayback
-        controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-        poster={poster}
-        className="w-full h-full object-cover"
-        style={{ opacity: ready ? 1 : 0, transition: "opacity 0.5s ease", pointerEvents: "none" }}
-      >
-        <source src={src} type="video/mp4" />
-      </video>
+      <img
+        src={posterSrc}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ pointerEvents: "none" }}
+      />
+      {!blocked && (
+        // eslint-disable-next-line jsx-a11y/media-has-caption
+        <video
+          ref={ref}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          controls={false}
+          disablePictureInPicture
+          disableRemotePlayback
+          controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+          poster={posterSrc}
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ opacity: playing ? 1 : 0, transition: "opacity 0.5s ease", pointerEvents: "none" }}
+        >
+          <source src={src} type="video/mp4" />
+        </video>
+      )}
     </div>
   )
 }
